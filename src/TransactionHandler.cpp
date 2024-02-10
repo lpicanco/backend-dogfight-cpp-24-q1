@@ -27,7 +27,7 @@ Task<> TransactionHandler::execute(const HttpRequestPtr& req, int id,
 
     const auto tipo = (*json)["tipo"].asString();
     int raw_valor = (*json)["valor"].asInt();
-    if (raw_valor <= 0)
+    if (raw_valor <= 0 || raw_valor != (*json)["valor"].asFloat())
     {
         callback(unprocessableEntity());
         co_return;
