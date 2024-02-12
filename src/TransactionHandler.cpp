@@ -9,14 +9,6 @@ static HttpResponsePtr unprocessableEntity() {
 Task<> TransactionHandler::execute(const HttpRequestPtr& req, int id,
                                    const std::function<void(const HttpResponsePtr&)>& callback) {
 
-    if (id <= 0 || id > 5)
-    {
-        const auto resp = HttpResponse::newHttpResponse();
-        resp->setStatusCode(k404NotFound);
-        callback(resp);
-        co_return;
-    }
-
     const auto json = req->getJsonObject();
 
     if (!json)
