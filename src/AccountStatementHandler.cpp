@@ -7,14 +7,6 @@
 
 Task<> AccountStatementHandler::execute(const HttpRequestPtr& req, int id,
                                         const std::function<void(const HttpResponsePtr&)>& callback) {
-    if (id <= 0 || id > 5)
-    {
-        const auto resp = HttpResponse::newHttpResponse();
-        resp->setStatusCode(k404NotFound);
-        callback(resp);
-        co_return;
-    }
-
     const auto dbClient = app().getDbClient();
 
     const auto balanceResult = co_await dbClient->execSqlCoro(
