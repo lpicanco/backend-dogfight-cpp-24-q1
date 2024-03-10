@@ -9,6 +9,14 @@ static HttpResponsePtr unprocessableEntity() {
 Task<> TransactionHandler::execute(const HttpRequestPtr& req, int id,
                                    const std::function<void(const HttpResponsePtr&)>& callback) {
 
+    if (id <= 0 || id > 5)
+    {
+        const auto resp = HttpResponse::newHttpResponse();
+        resp->setStatusCode(k404NotFound);
+        callback(resp);
+        co_return;
+    }
+
     const auto json = req->getJsonObject();
 
     if (!json)
@@ -43,11 +51,22 @@ Task<> TransactionHandler::execute(const HttpRequestPtr& req, int id,
         co_return;
     }
 
-    const auto dbClient = app().getDbClient();
+    const auto dbClient = app().getFastDbClient();
 
     const auto result = co_await dbClient->execSqlCoro(
         R"(
-                    SELECT balance, account_limit FROM insertTransaction($1, $2, $3, $4, $5);)",
+                    WITH
+                    upd AS (
+                        UPDATE clients
+                            SET    balance = balance + $2
+                            WHERE  id = $1 and balance + $2 >= account_limit * -1
+                            RETURNING balance, account_limit
+                    ),
+                    ins AS (
+                        INSERT INTO transactions (client_id, value, operation, description)
+                        SELECT $1, $3, $4, $5  FROM upd
+                    )
+                    SELECT balance as client_balance, account_limit as client_account_limit FROM upd;)",
         id, valor, raw_valor, tipo, descricao);
 
     if (result.affectedRows() == 0)
@@ -57,8 +76,9 @@ Task<> TransactionHandler::execute(const HttpRequestPtr& req, int id,
     }
 
     Json::Value ret;
-    ret["limite"] = result[0]["account_limit"].as<int>();
-    ret["saldo"] = result[0]["balance"].as<int>();
+    const auto limit = result[0]["client_account_limit"];
+    ret["limite"] = limit.as<int>();
+    ret["saldo"] = result[0]["client_balance"].as<int>();
     const auto resp = HttpResponse::newHttpJsonResponse(ret);
     callback(resp);
 

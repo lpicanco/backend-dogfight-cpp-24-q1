@@ -6,8 +6,7 @@ using namespace drogon;
 
 class AccountStatementHandler {
 public:
-    static Task<> execute(const HttpRequestPtr& req,
-                          int id,
+    static Task<> execute(int id,
                           const std::function<void(const HttpResponsePtr&)>& callback);
 };
 

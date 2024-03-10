@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.18)
 project(backend_dogfight_cpp_24_q1)
 
 set(CMAKE_CXX_STANDARD 20)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # add dependencies
 include(FetchContent)
@@ -15,7 +19,14 @@ CPMAddPackage(
         GIT_TAG 3f73edae00aba5b0112a80b4d41e6f1ff7d92a3d
 )
 
+set(BUILD_TESTING OFF)
+set(BUILD_TEST OFF)
+
 # Drogon
+set(BUILD_EXAMPLES OFF)
+set(BUILD_CTL OFF)
+set(BUILD_DOC OFF)
+set(BUILD_BROTLI OFF)
 set(LIBPQ_SUPPORTS_BATCH_MODE ON)
 CPMAddPackage(
         NAME drogon

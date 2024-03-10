@@ -5,9 +5,17 @@
 
 #include "Model.h"
 
-Task<> AccountStatementHandler::execute(const HttpRequestPtr& req, int id,
+Task<> AccountStatementHandler::execute(int id,
                                         const std::function<void(const HttpResponsePtr&)>& callback) {
-    const auto dbClient = app().getDbClient();
+    if (id <= 0 || id > 5)
+    {
+        const auto resp = HttpResponse::newHttpResponse();
+        resp->setStatusCode(k404NotFound);
+        callback(resp);
+        co_return;
+    }
+
+    const auto dbClient = app().getFastDbClient();
 
     const auto balanceResult = co_await dbClient->execSqlCoro(
         R"(SELECT balance, TO_CHAR(now(), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as now, account_limit from clients WHERE id = $1)",
